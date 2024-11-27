@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeCoin Rewards</title>
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.0.0/dist/index.iife.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #8e44ad, #3498db);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        header p {
+            margin: 10px 0;
+            font-size: 1.2rem;
+        }
+        .container {
+            width: 90%;
+            max-width: 700px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .button {
+            background: #e67e22;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px 0;
+            transition: background 0.3s ease;
+        }
+        .button:hover {
+            background: #d35400;
+        }
+        .task-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+            list-style: none;
+            padding: 0;
+        }
+        .task-item {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .task-item img {
+            max-width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .task-item h4 {
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        .task-item button {
+            background: #27ae60;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+        .task-item button:hover {
+            background: #1e8449;
+        }
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>LifeCoin Rewards</h1>
+        <p>Earn LifeCoin by completing tasks that support health, education, and charity!</p>
+    </header>
+
+    <div class="container">
+        <button id="connect-wallet-btn" class="button">
+            <i class="fas fa-wallet"></i> Connect Wallet
+        </button>
+        <p>Your LifeCoin Balance: <span id="lifeCoinBalance">0</span> LFC</p>
+
+        <h3>Available Tasks</h3>
+        <ul class="task-list">
+            <li class="task-item">
+                <img src="https://via.placeholder.com/150" alt="Health Article">
+                <h4>Read Health Article</h4>
+                <button onclick="completeTask('healthArticle')">+5 LFC</button>
+            </li>
+            <li class="task-item">
+                <img src="https://via.placeholder.com/150" alt="Education Post">
+                <h4>Like Education Post</h4>
+                <button onclick="completeTask('educationPost')">+3 LFC</button>
+            </li>
+            <li class="task-item">
+                <img src="https://via.placeholder.com/150" alt="Charity Donation">
+                <h4>Donate to Charity</h4>
+                <button onclick="completeTask('charityDonation')">+10 LFC</button>
+            </li>
+        </ul>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 LifeCoin Project. All rights reserved.</p>
+    </footer>
+
+    <script>
+        let userWallet = null;
+        const lifeCoinBalance = document.getElementById("lifeCoinBalance");
+
+        const provider = window.solana;
+
+        // Connect wallet
+        document.getElementById("connect-wallet-btn").addEventListener("click", async () => {
+            if (provider && provider.isPhantom) {
+                try {
+                    const response = await provider.connect();
+                    userWallet = response.publicKey.toString();
+                    console.log("Wallet connected:", userWallet);
+                    alert("Wallet connected successfully!");
+                } catch (error) {
+                    console.error("Connection failed:", error);
+                }
+            } else {
+                alert("Please install Phantom Wallet to connect.");
+            }
+        });
+
+        // Complete a task and earn LifeCoin
+        function completeTask(task) {
+            let rewardAmount = 0;
+
+            switch(task) {
+                case 'healthArticle':
+                    rewardAmount = 5;
+                    break;
+                case 'educationPost':
+                    rewardAmount = 3;
+                    break;
+                case 'charityDonation':
+                    rewardAmount = 10;
+                    break;
+                default:
+                    console.error("Unknown task");
+                    return;
+            }
+
+            alert(`You earned ${rewardAmount} LifeCoin for completing: ${task}`);
+            updateBalance(rewardAmount);
+
+            sendRewardToBackend(task, rewardAmount);
+        }
+
+        // Update user balance
+        function updateBalance(amount) {
+            let currentBalance = parseInt(lifeCoinBalance.innerText);
+            currentBalance += amount;
+            lifeCoinBalance.innerText = currentBalance;
+        }
+
+        // Send reward data to the backend
+        function sendRewardToBackend(task, amount) {
+            fetch("https://your-backend-server.com/track-reward", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userWallet: userWallet, task: task, rewardAmount: amount }),
+            })
+            .then(response => response.json())
+            .then(data => console.log("Reward sent to backend:", data))
+            .catch(error => console.error("Error sending reward:", error));
+        }
+    </script>
+</body>
+</html>
+        
