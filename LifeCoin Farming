@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeCoin Rewards</title>
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.0.0/dist/index.iife.js"></script>
+</head>
+<body>
+    <h1>Welcome to the LifeCoin Rewards Platform</h1>
+
+    <div>
+        <button id="connect-wallet-btn">Connect Wallet</button>
+        <p>Your LifeCoin balance: <span id="lifeCoinBalance">0</span> LFC</p>
+    </div>
+
+    <div id="tasks">
+        <h3>Available Tasks</h3>
+        <ul>
+            <li>
+                <button onclick="completeTask('healthArticle')">Read Health Article</button>
+                Reward: <span id="healthReward">5 LifeCoin</span>
+            </li>
+            <li>
+                <button onclick="completeTask('educationPost')">Like Education Post</button>
+                Reward: <span id="educationReward">3 LifeCoin</span>
+            </li>
+            <li>
+                <button onclick="completeTask('charityDonation')">Donate to Charity</button>
+                Reward: <span id="charityReward">10 LifeCoin</span>
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        let userWallet = null;
+        const lifeCoinBalance = document.getElementById("lifeCoinBalance");
+
+        const provider = window.solana;
+
+        // Connect wallet
+        document.getElementById("connect-wallet-btn").addEventListener("click", async () => {
+            if (provider && provider.isPhantom) {
+                try {
+                    const response = await provider.connect();
+                    userWallet = response.publicKey.toString();
+                    console.log("Wallet connected:", userWallet);
+                    alert("Wallet connected successfully!");
+                } catch (error) {
+                    console.error("Connection failed:", error);
+                }
+            } else {
+                alert("Please install Phantom Wallet to connect.");
+            }
+        });
+
+        // Complete a task and earn LifeCoin
+        function completeTask(task) {
+            let rewardAmount = 0;
+
+            switch(task) {
+                case 'healthArticle':
+                    rewardAmount = 5;
+                    break;
+                case 'educationPost':
+                    rewardAmount = 3;
+                    break;
+                case 'charityDonation':
+                    rewardAmount = 10;
+                    break;
+                default:
+                    console.error("Unknown task");
+                    return;
+            }
+
+            // Display the earned LifeCoin
+            alert(`You have earned ${rewardAmount} LifeCoin for completing the task: ${task}`);
+            updateBalance(rewardAmount);
+
+            // Store the earned LifeCoin in the backend (database)
+            sendRewardToBackend(task, rewardAmount);
+        }
+
+        // Update user balance in the UI
+        function updateBalance(amount) {
+            let currentBalance = parseInt(lifeCoinBalance.innerText);
+            currentBalance += amount;
+            lifeCoinBalance.innerText = currentBalance;
+        }
+
+        // Send reward data to the backend (you would need to implement this)
+        function sendRewardToBackend(task, amount) {
+            fetch("https://your-backend-server.com/track-reward", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    userWallet: userWallet,
+                    task: task,
+                    rewardAmount: amount,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Reward sent to backend:", data);
+            })
+            .catch(error => {
+                console.error("Error sending reward to backend:", error);
+            });
+        }
+    </script>
+</body>
+</html>
